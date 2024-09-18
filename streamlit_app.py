@@ -5,13 +5,50 @@ from src.data.fetcher import fetch_stock_data
 from src.models.var import calculate_var_historical, calculate_var_parametric, calculate_var_monte_carlo
 from src.models.cvar import calculate_cvar_historical, calculate_cvar_parametric, calculate_cvar_monte_carlo
 
-st.set_page_config(page_title="VaR and CVaR Calculator", layout="wide")
+st.set_page_config(page_title="VaR and CVaR Risk Calculator", layout="wide", page_icon="⚠")
 
 st.title("Value at Risk (VaR) and Conditional Value at Risk (CVaR) Calculator")
 
+st.sidebar.markdown(
+    """
+    <style>
+    .linkedin-button {
+        display: inline-flex;
+        align-items: center;
+        background-color: white;
+        color: #0077B5;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s;
+        border: 2px solid #0077B5;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .linkedin-button:hover {
+        background-color: #f3f9ff;
+        color: #004d77;
+        border-color: #004d77;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .linkedin-button img {
+        margin-right: 10px;
+    }
+    </style>
+    <a href="https://www.linkedin.com/in/khoshnaw" target="_blank" class="linkedin-button">
+        <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"
+        width="20" height="20" />
+        Created by Rasheed Khoshnaw
+    </a>
+""",
+    unsafe_allow_html=True,
+)
+st.sidebar.markdown("---")
+
 st.sidebar.header("Portfolio Settings")
-tickers = st.sidebar.text_input("Enter stock tickers (comma-separated)", "AAPL,GOOGL,MSFT").split(',')
-weights = st.sidebar.text_input("Enter portfolio weights (comma-separated)", "0.4,0.3,0.3").split(',')
+
+tickers = st.sidebar.text_input("Enter stock tickers (comma-separated)", "SPY,QQQ").split(',')
+weights = st.sidebar.text_input("Enter portfolio weights (comma-separated)", "0.5,0.5").split(',')
 weights = [float(w) for w in weights]
 
 if abs(sum(weights) - 1.0) > 1e-6:
@@ -19,19 +56,34 @@ if abs(sum(weights) - 1.0) > 1e-6:
     st.stop()
 
 portfolio_value = st.sidebar.number_input("Portfolio Value ($)", min_value=1000, value=100000, step=1000)
-confidence_level = st.sidebar.slider("Confidence Level", min_value=0.9, max_value=0.99, value=0.95, step=0.01)
-time_horizon = st.sidebar.number_input("Time Horizon (days)", min_value=1, value=1, step=1)
-start_date = st.sidebar.date_input("Start Date", pd.to_datetime("2020-01-01"))
-end_date = st.sidebar.date_input("End Date", min_value=start_date, max_value=pd.Timestamp.today(), value=pd.Timestamp.today())
 
-calculation_method = st.sidebar.selectbox("Calculation Method", ["Historical", "Parametric", "Monte Carlo"])
+st.sidebar.subheader("Risk Parameters")
+confidence_level = st.sidebar.slider("Confidence Level", min_value=0.9, max_value=0.99, value=0.95, step=0.01, 
+                                     help="Higher confidence levels result in higher VaR and CVaR values, indicating larger potential losses.")
+time_horizon = st.sidebar.number_input("Time Horizon (days)", min_value=1, value=1, step=1, 
+                                       help="Represents the number of days ahead for which potential losses are estimated. Longer horizons typically result in higher VaR and CVaR values.")
+
+st.sidebar.subheader("Date Range")
+col1, col2 = st.sidebar.columns(2)
+start_date = col1.date_input("Start Date", pd.to_datetime("2020-01-01"), 
+                             help="The start date of historical data to use in calculations.")
+end_date = col2.date_input("End Date", min_value=start_date, max_value=pd.Timestamp.today(), value=pd.Timestamp.today(), 
+                           help="The end date of historical data to use in calculations.")
+
+st.sidebar.subheader("Calculation Method")
+calculation_method = st.sidebar.selectbox("Select Method", ["Historical", "Parametric", "Monte Carlo"], 
+                                          help="Different methods may produce varying results based on their underlying assumptions.")
 num_simulations = None
 if calculation_method == "Monte Carlo":
-    num_simulations = st.sidebar.number_input("Number of Simulations", min_value=1000, value=10000, step=1000)
+    num_simulations = st.sidebar.number_input("Number of Simulations", min_value=1000, value=10000, step=1000, 
+                                              help="More simulations generally provide more accurate results but take longer to compute.")
 
-use_rolling_window = st.sidebar.checkbox("Use Rolling Window")
+st.sidebar.subheader("Additional Options")
+use_rolling_window = st.sidebar.checkbox("Use Rolling Window", 
+                                         help="Calculates VaR and CVaR using historical data over sliding time periods. Shows how risk estimates changed over time, displayed as a line graph instead of a histogram.")
 if use_rolling_window:
-    rolling_window = st.sidebar.slider("Rolling Window Size", min_value=2, max_value=252, value=126, step=1)
+    rolling_window = st.sidebar.slider("Rolling Window Size", min_value=2, max_value=252, value=126, step=1, 
+                                       help="Number of past days used in each calculation point. Larger windows smooth out short-term fluctuations.")
 
 @st.cache_data
 def get_stock_data(tickers, start_date, end_date):
@@ -69,8 +121,18 @@ else:
 st.header("Risk Metrics")
 col1, col2 = st.columns(2)
 
-col1.metric("Value at Risk (VaR)", f"${var*portfolio_value:.2f}", delta=None)
-col2.metric("Conditional Value at Risk (CVaR)", f"${cvar*portfolio_value:.2f}", delta=None)
+col1.metric(
+    "Value at Risk (VaR)", 
+    f"${var*portfolio_value:.2f}", 
+    delta=None,
+    help="VaR represents the maximum potential loss in the portfolio value over the specified time horizon, at the given confidence level. It answers the question: 'How much could I lose in a really bad case?'"
+)
+col2.metric(
+    "Conditional Value at Risk (CVaR)", 
+    f"${cvar*portfolio_value:.2f}", 
+    delta=None,
+    help="CVaR, also known as Expected Shortfall, represents the expected loss if the VaR is exceeded. It's the average of all losses greater than VaR, providing a more conservative risk estimate."
+)
 
 st.header("Visualizations")
 
@@ -116,8 +178,17 @@ else:
         yaxis_title="Frequency"
     )
     st.plotly_chart(fig)
+
 st.write(f"Time Horizon: {time_horizon} days")
 st.write(f"Confidence Level: {confidence_level:.2%}")
 st.write(f"Calculation Method: {calculation_method}")
 if calculation_method == "Monte Carlo":
     st.write(f"Number of Simulations: {num_simulations}")
+
+st.markdown("---")
+st.subheader("About VaR and CVaR")
+st.write("""
+- **Value at Risk (VaR)** represents the maximum potential loss in value of a portfolio over a defined period for a given confidence interval.
+- **Conditional Value at Risk (CVaR)** represents the expected loss exceeding VaR. It provides a more conservative estimate of risk.
+- Adjusting the confidence level, time horizon, and calculation method can significantly impact the VaR and CVaR estimates.
+""")
