@@ -4,7 +4,8 @@ from src.models.var import calculate_var_historical, calculate_var_monte_carlo
 
 def calculate_cvar_historical(returns, confidence_level, time_horizon):
     var = calculate_var_historical(returns, confidence_level, time_horizon)
-    return abs(np.mean(returns[returns <= -var/np.sqrt(time_horizon)])) * np.sqrt(time_horizon)
+    cvar_daily = abs(np.mean(returns[returns <= -var/np.sqrt(time_horizon)]))
+    return cvar_daily * np.sqrt(time_horizon)
 
 def calculate_cvar_parametric(returns, confidence_level, time_horizon):
     mu = np.mean(returns)
