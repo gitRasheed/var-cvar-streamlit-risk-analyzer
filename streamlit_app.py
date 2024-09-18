@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
 from src.data.fetcher import fetch_stock_data
 from src.models.var import calculate_var_historical, calculate_var_parametric, calculate_var_monte_carlo
