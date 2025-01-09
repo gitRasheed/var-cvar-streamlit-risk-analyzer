@@ -2,7 +2,7 @@
 
 ## Overview
 
-This Streamlit web app calculates and visualizes Value at Risk (VaR) and Conditional Value at Risk (CVaR) for custom stock portfolios.
+This Streamlit web app calculates and visualizes Value at Risk (VaR) and Conditional Value at Risk (CVaR) for custom stock portfolios. I wanted to make this after first learning of CVaR from [this interview](https://youtu.be/pEkAICRqjvY?si=DpQ2xdIYrN4pu_tO) with Stanislav Uryasev.
 
 ## Features
 
