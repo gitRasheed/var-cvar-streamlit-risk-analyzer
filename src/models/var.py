@@ -20,4 +20,5 @@ def calculate_var_monte_carlo(returns, confidence_level, time_horizon, num_simul
     simulated_returns = np.random.normal(
         mu, sigma * np.sqrt(time_horizon), num_simulations
     )
-    return abs(np.percentile(simulated_returns, 100 * (1 - confidence_level)))
+    var = abs(np.percentile(simulated_returns, 100 * (1 - confidence_level)))
+    return var, simulated_returns

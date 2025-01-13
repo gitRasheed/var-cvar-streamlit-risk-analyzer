@@ -20,12 +20,8 @@ def calculate_cvar_parametric(returns, confidence_level, time_horizon):
 def calculate_cvar_monte_carlo(
     returns, confidence_level, time_horizon, num_simulations
 ):
-    var = calculate_var_monte_carlo(
+    var, simulated_returns = calculate_var_monte_carlo(
         returns, confidence_level, time_horizon, num_simulations
     )
-    mu = np.mean(returns)
-    sigma = np.std(returns)
-    simulated_returns = np.random.normal(
-        mu, sigma * np.sqrt(time_horizon), num_simulations
-    )
-    return abs(np.mean(simulated_returns[simulated_returns <= -var]))
+    cvar = abs(np.mean(simulated_returns[simulated_returns <= -var]))
+    return cvar, simulated_returns

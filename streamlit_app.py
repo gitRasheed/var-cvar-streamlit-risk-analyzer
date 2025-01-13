@@ -21,35 +21,35 @@ st.title("Value at Risk (VaR) and Conditional Value at Risk (CVaR) Calculator")
 
 st.sidebar.markdown(
     """
-    <style>
-    .linkedin-button {
-        display: inline-flex;
-        align-items: center;
-        background-color: white;
-        color: #0077B5;
-        padding: 10px 15px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-weight: bold;
-        transition: all 0.3s;
-        border: 2px solid #0077B5;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .linkedin-button:hover {
-        background-color: #f3f9ff;
-        color: #004d77;
-        border-color: #004d77;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-    }
-    .linkedin-button img {
-        margin-right: 10px;
-    }
-    </style>
-    <a href="https://www.linkedin.com/in/khoshnaw" target="_blank" class="linkedin-button">
-        <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"
-        width="20" height="20" />
-        Created by Rasheed Khoshnaw
-    </a>
+   <style>
+   .linkedin-button {
+       display: inline-flex;
+       align-items: center;
+       background-color: white;
+       color: #0077B5;
+       padding: 10px 15px;
+       border-radius: 5px;
+       text-decoration: none;
+       font-weight: bold;
+       transition: all 0.3s;
+       border: 2px solid #0077B5;
+       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+   }
+   .linkedin-button:hover {
+       background-color: #f3f9ff;
+       color: #004d77;
+       border-color: #004d77;
+       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+   }
+   .linkedin-button img {
+       margin-right: 10px;
+   }
+   </style>
+   <a href="https://www.linkedin.com/in/khoshnaw" target="_blank" class="linkedin-button">
+       <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"
+       width="20" height="20" />
+       Created by Rasheed Khoshnaw
+   </a>
 """,
     unsafe_allow_html=True,
 )
@@ -152,6 +152,7 @@ portfolio_returns = (returns * weights).sum(axis=1)
 def calculate_var_cvar(
     returns, confidence_level, method, time_horizon, num_simulations=None
 ):
+    simulated_returns = None
     if method == "Historical":
         var = calculate_var_historical(returns, confidence_level, time_horizon)
         cvar = calculate_cvar_historical(returns, confidence_level, time_horizon)
@@ -163,15 +164,15 @@ def calculate_var_cvar(
             raise ValueError(
                 "Number of simulations must be provided for Monte Carlo method"
             )
-        var = calculate_var_monte_carlo(
+        var, mc_returns = calculate_var_monte_carlo(
             returns, confidence_level, time_horizon, num_simulations
         )
-        cvar = calculate_cvar_monte_carlo(
+        cvar, simulated_returns = calculate_cvar_monte_carlo(
             returns, confidence_level, time_horizon, num_simulations
         )
     else:
         raise ValueError("Invalid calculation method")
-    return var, cvar
+    return var, cvar, simulated_returns
 
 
 if use_rolling_window:
@@ -187,7 +188,7 @@ if use_rolling_window:
     )
     var, cvar = rolling_var.iloc[-1], rolling_cvar.iloc[-1]
 else:
-    var, cvar = calculate_var_cvar(
+    var, cvar, simulated_returns = calculate_var_cvar(
         portfolio_returns,
         confidence_level,
         calculation_method,
@@ -242,9 +243,23 @@ if use_rolling_window:
     st.plotly_chart(fig)
 else:
     fig = go.Figure()
+
+    if calculation_method == "Monte Carlo":
+        plot_returns = simulated_returns * portfolio_value
+        plot_title = "Monte Carlo Simulated Returns Distribution with VaR and CVaR"
+        subtitle = f"Based on {len(portfolio_returns)} historical data points, showing {num_simulations} simulations"
+    else:
+        plot_returns = portfolio_returns * portfolio_value
+        if calculation_method == "Historical":
+            plot_title = "Historical Returns Distribution with VaR and CVaR"
+            subtitle = f"Using {len(portfolio_returns)} historical data points"
+        else:
+            plot_title = "Historical Returns Distribution with Parametric VaR and CVaR"
+            subtitle = f"Using {len(portfolio_returns)} historical data points, assuming normal distribution"
+
     fig.add_trace(
         go.Histogram(
-            x=portfolio_returns * portfolio_value,
+            x=plot_returns,
             nbinsx=100,
             name="Returns Distribution",
             marker=dict(line=dict(width=1, color="black")),
@@ -264,7 +279,7 @@ else:
         annotation_text=f"CVaR: ${cvar * portfolio_value:.2f}",
     )
     fig.update_layout(
-        title="Portfolio Returns Distribution with VaR and CVaR",
+        title=f"{plot_title}<br><sup>{subtitle}</sup>",
         xaxis_title="Returns ($)",
         yaxis_title="Frequency",
     )
@@ -280,5 +295,5 @@ st.markdown("---")
 st.subheader("About VaR and CVaR")
 st.write("""
 - **Value at Risk (VaR)** represents the maximum potential loss in value of a portfolio over a defined period for a given confidence interval.
-- **Conditional Value at Risk (CVaR)** represents the expected loss exceeding VaR. It provides a more pessimistic estimate of risk.
+- **Conditional Value at Risk (CVaR)** represents the expected loss exceeding VaR. It provides a more conservative estimate of risk.
 """)

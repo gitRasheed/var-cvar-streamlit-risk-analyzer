@@ -6,22 +6,39 @@ This Streamlit web app calculates and visualizes Value at Risk (VaR) and Conditi
 
 ## Features
 
-- **Custom Portfolio Creation**: Input any publicly traded stock tickers and weights
-- **Multiple Calculation Methods**: Historical, Parametric, and Monte Carlo simulations
-- **Adjustable Parameters**: Confidence level, time horizon, and date range
-- **Interactive Visualizations**: Distribution histograms and rolling window plots
-- **Real-time Data**: Utilizes yfinance for up-to-date market information
+### Portfolio Management
 
-## Modules Used
+- Custom stock portfolio creation with flexible weightings
+- Real-time market data via yfinance integration
+- Adjustable portfolio value and time horizons
 
-- 🛠️ **Framework**: Streamlit for rapid development and deployment
-- 🐼 **Data Handling**: Pandas for efficient data manipulation
-- 💹 **Financial Data**: yfinance for retrieving historical stock data
-- 📊 **Visualizations**: Plotly for interactive, publication-quality graphs
-- 🧪 **Statistical Computations**: NumPy and SciPy for robust calculations
-- ✅ **Code Quality**: Pytest for unit testing, ensuring reliability and maintainability
+### Risk Calculation Methods
 
-## Installation and Usage
+- Historical: Based on actual past returns
+- Parametric: Normal distribution assumption
+- Monte Carlo: Return distribution simulation
+
+### Analysis Options
+
+- Adjustable confidence levels (90% - 99%)
+- Rolling window analysis for risk evolution
+- Flexible date range selection
+
+### Visualizations
+
+- Return distribution histograms with VaR/CVaR markers
+- Rolling window time series plots
+- Monte Carlo simulation distributions
+
+## Technical Stack
+
+- Streamlit: Web framework
+- Pandas & yfinance: Data handling
+- SciPy: Statistical computations
+- Plotly: Interactive visualizations
+- Pytest: Testing framework
+
+## Installation
 
 1. Clone the repository
 2. Install dependencies: `pip install -r requirements.txt`
@@ -29,7 +46,8 @@ This Streamlit web app calculates and visualizes Value at Risk (VaR) and Conditi
 
 ## Future Enhancements
 
-- Portfolio Stress Testing: Simulate performance under historical crisis scenarios (e.g., 2008 Financial Crisis, 2020 Pandemic, Dot-com Bubble)
+- Historical crisis scenario stress testing
+- Portfolio optimization using CVaR
 
 ## Acknowledgements
 
