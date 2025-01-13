@@ -1,9 +1,10 @@
 import yfinance as yf
 import pandas as pd
 
+
 def fetch_stock_data(tickers, start_date, end_date):
     try:
-        data = yf.download(tickers, start=start_date, end=end_date)['Adj Close']
+        data = yf.download(tickers, start=start_date, end=end_date)["Adj Close"]
         if isinstance(data, pd.Series):
             data = data.to_frame()
         if data.empty:
